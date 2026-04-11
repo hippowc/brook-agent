@@ -1,0 +1,64 @@
+# Brook 默认配置（首次运行时写入 ~/.brook/agent.yaml，可按需修改）
+
+version: "1"
+
+agent:
+  mode: react
+  name: "brook-assistant"
+  description: "Brook 助手（ReAct + 本地文件工具）"
+  instruction: |
+    你是 Brook 助手。工作目录为会话配置的工作目录；仅使用已提供的工具完成任务。
+  user_prompt: ""
+  max_iterations: 24
+  working_directory: "__WORKSPACE__"
+
+  tools:
+    filesystem:
+      enabled: true
+      backend: local
+      shell: true
+      streaming_shell: false
+      local:
+        # strict 下仅允许白名单命令（见 internal/core/fs/backend.go）；Deep 子 Agent 常用 find/head 等
+        strict_commands: true
+    return_directly: {}
+
+  middlewares: []
+  mode_config: null
+
+models:
+  providers:
+    openai:
+      driver: openai
+      api_key_env: "OPENAI_API_KEY"
+      base_url: ""
+      extra:
+        temperature: 0.2
+    ollama:
+      driver: ollama
+      api_key_env: ""
+      base_url: "http://127.0.0.1:11434"
+      extra: {}
+
+  active:
+    provider: openai
+    model: "gpt-4o-mini"
+
+memory:
+  session_store: file
+  session_file_path: "__SESSION__"
+  max_context_messages: 50
+  output_key: "last_answer"
+
+observability:
+  global_handlers: []
+  log_level: "info"
+
+interrupt:
+  enabled: true
+  checkpoint_backend: file
+  checkpoint_file_path: "__CHECKPOINTS__"
+
+a2ui:
+  enabled: false
+  version: "0.8"
