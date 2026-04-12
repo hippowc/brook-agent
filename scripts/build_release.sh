@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
-# 交叉编译 macOS / Linux 的 release 二进制（brook + brook-tui），输出 dist/ 下的 tar.gz 与 checksums.txt
+# 交叉编译 macOS / Linux 的 release 二进制；每个 tar.gz 仅包含**一个**可执行文件（brook / brook-tui / brook-gateway）。
+# 输出 dist/ 下的多个 tar.gz 与 checksums.txt
 #
-# 上传到 GitHub Release 时，文件名须与 install.sh 一致：brook_<tag>_darwin_arm64.tar.gz 等。
+# 上传到 GitHub Release 时，文件名须与 install.sh 一致，例如：
+#   brook_v0.0.1_darwin_arm64.tar.gz
+#   brook-tui_v0.0.1_darwin_arm64.tar.gz
+#   brook-gateway_v0.0.1_darwin_arm64.tar.gz
 # 请使用与 Release 标签相同的 VERSION，例如：
 #   VERSION=v0.0.1 ./scripts/build_release.sh
 # 若未设置 VERSION，默认用 git describe，产物名会是 brook_4c53307_...，与 tag v0.0.1 的 Release 对不上会 404。
@@ -32,6 +36,12 @@ platforms=(
   "linux arm64"
 )
 
+bins=(
+  "brook"
+  "brook-tui"
+  "brook-gateway"
+)
+
 checksums="$DIST/checksums.txt"
 : >"$checksums"
 
@@ -40,24 +50,26 @@ for row in "${platforms[@]}"; do
   set -- $row
   goos="$1"
   goarch="$2"
-  name="brook_${VERSION}_${goos}_${goarch}"
-  stage="$DIST/${name}"
-  mkdir -p "$stage"
 
-  echo "==> GOOS=$goos GOARCH=$goarch -> $name.tar.gz"
-  GOOS="$goos" GOARCH="$goarch" go build -trimpath -ldflags="$LDFLAGS" -o "$stage/brook" ./cmd/brook
-  GOOS="$goos" GOARCH="$goarch" go build -trimpath -ldflags="$LDFLAGS" -o "$stage/brook-tui" ./cmd/brook-tui
+  for bin in "${bins[@]}"; do
+    name="${bin}_${VERSION}_${goos}_${goarch}"
+    stage="$DIST/${name}"
+    mkdir -p "$stage"
 
-  (cd "$DIST" && tar -czf "${name}.tar.gz" "$name")
-  rm -rf "$stage"
+    echo "==> GOOS=$goos GOARCH=$goarch $bin -> ${name}.tar.gz"
+    GOOS="$goos" GOARCH="$goarch" go build -trimpath -ldflags="$LDFLAGS" -o "$stage/${bin}" "./cmd/${bin}"
 
-  (cd "$DIST" && {
-    if command -v sha256sum >/dev/null 2>&1; then
-      sha256sum "${name}.tar.gz"
-    else
-      shasum -a 256 "${name}.tar.gz"
-    fi
-  } >>"$checksums")
+    (cd "$DIST" && tar -czf "${name}.tar.gz" "$name")
+    rm -rf "$stage"
+
+    (cd "$DIST" && {
+      if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum "${name}.tar.gz"
+      else
+        shasum -a 256 "${name}.tar.gz"
+      fi
+    } >>"$checksums")
+  done
 done
 
 echo "Done. Artifacts in $DIST"

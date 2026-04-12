@@ -24,6 +24,60 @@ type Root struct {
 
 	// A2UI 将 Agent 事件流映射为 A2UI 兼容的 JSONL（见 pkg/a2ui）。
 	A2UI A2UISpec `yaml:"a2ui,omitempty" json:"a2ui,omitempty"`
+
+	// Gateway 由 brook-gateway 使用：HTTP 接入外部消息并与同一套 Agent 配置集成。
+	Gateway GatewaySpec `yaml:"gateway,omitempty" json:"gateway,omitempty"`
+}
+
+// GatewaySpec 控制 brook-gateway：监听地址、鉴权、限流、按外部用户隔离的会话存储。
+type GatewaySpec struct {
+	Enabled bool `yaml:"enabled" json:"enabled"`
+
+	// Listen 监听地址，如 ":8787"。
+	Listen string `yaml:"listen,omitempty" json:"listen,omitempty"`
+
+	ReadHeaderTimeoutSeconds int `yaml:"read_header_timeout_seconds,omitempty" json:"read_header_timeout_seconds,omitempty"`
+	ReadTimeoutSeconds       int `yaml:"read_timeout_seconds,omitempty" json:"read_timeout_seconds,omitempty"`
+	WriteTimeoutSeconds      int `yaml:"write_timeout_seconds,omitempty" json:"write_timeout_seconds,omitempty"`
+	ShutdownTimeoutSeconds   int `yaml:"shutdown_timeout_seconds,omitempty" json:"shutdown_timeout_seconds,omitempty"`
+
+	// MaxRequestBodyBytes 请求体上限，0 表示默认 1MiB。
+	MaxRequestBodyBytes int `yaml:"max_request_body_bytes,omitempty" json:"max_request_body_bytes,omitempty"`
+
+	// QueryTimeoutSeconds 单次 Agent 运行的上限，0 表示默认 600。
+	QueryTimeoutSeconds int `yaml:"query_timeout_seconds,omitempty" json:"query_timeout_seconds,omitempty"`
+
+	Auth      GatewayAuthSpec       `yaml:"auth,omitempty" json:"auth,omitempty"`
+	RateLimit *GatewayRateLimitSpec `yaml:"rate_limit,omitempty" json:"rate_limit,omitempty"`
+	Session   GatewaySessionSpec    `yaml:"session,omitempty" json:"session,omitempty"`
+}
+
+// GatewayAuthSpec 网关鉴权；mode 为 none | bearer | hmac。
+type GatewayAuthSpec struct {
+	Mode string `yaml:"mode,omitempty" json:"mode,omitempty"`
+
+	// BearerTokenEnv 环境变量名，其值为期望的 Bearer Token（不含 "Bearer " 前缀）。
+	BearerTokenEnv string `yaml:"bearer_token_env,omitempty" json:"bearer_token_env,omitempty"`
+
+	// HMACSecretEnv 环境变量名，值为 HMAC 密钥；请求头 X-Brook-Timestamp（Unix 秒）与 X-Brook-Signature（hex）。
+	HMACSecretEnv string `yaml:"hmac_secret_env,omitempty" json:"hmac_secret_env,omitempty"`
+	// HMACMaxSkewSeconds 时间戳允许偏差，0 表示默认 300。
+	HMACMaxSkewSeconds int `yaml:"hmac_max_skew_seconds,omitempty" json:"hmac_max_skew_seconds,omitempty"`
+}
+
+// GatewayRateLimitSpec 按客户端 IP 的简单滑动窗口限流（进程内）。
+type GatewayRateLimitSpec struct {
+	Enabled           bool `yaml:"enabled" json:"enabled"`
+	RequestsPerMinute int  `yaml:"requests_per_minute,omitempty" json:"requests_per_minute,omitempty"`
+	Burst             int  `yaml:"burst,omitempty" json:"burst,omitempty"`
+}
+
+// GatewaySessionSpec 外部 user_id 与会话 KV 的映射存储。
+type GatewaySessionSpec struct {
+	// Store memory | file；file 时使用 FileDir。
+	Store string `yaml:"store,omitempty" json:"store,omitempty"`
+	// FileDir 绝对路径；空则使用 ~/.brook/gateway/sessions。
+	FileDir string `yaml:"file_dir,omitempty" json:"file_dir,omitempty"`
 }
 
 // A2UISpec 控制是否输出 A2UI 风格的流式 UI 消息（JSON Lines）。

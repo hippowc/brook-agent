@@ -30,6 +30,56 @@ func (r *Root) Validate() error {
 	if err := r.Agent.validateMode(); err != nil {
 		return err
 	}
+	if err := r.Gateway.validate(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (g *GatewaySpec) validate() error {
+	if !g.Enabled {
+		return nil
+	}
+	if strings.TrimSpace(g.Listen) == "" {
+		g.Listen = ":8787"
+	}
+	mode := strings.ToLower(strings.TrimSpace(g.Auth.Mode))
+	if mode == "" {
+		mode = "none"
+		g.Auth.Mode = "none"
+	}
+	switch mode {
+	case "none", "bearer", "hmac":
+	default:
+		return fmt.Errorf("agentconfig: gateway.auth.mode must be none, bearer or hmac, got %q", g.Auth.Mode)
+	}
+	if mode == "bearer" && strings.TrimSpace(g.Auth.BearerTokenEnv) == "" {
+		return fmt.Errorf("agentconfig: gateway.auth.bearer_token_env required when auth.mode=bearer")
+	}
+	if mode == "hmac" && strings.TrimSpace(g.Auth.HMACSecretEnv) == "" {
+		return fmt.Errorf("agentconfig: gateway.auth.hmac_secret_env required when auth.mode=hmac")
+	}
+	store := strings.ToLower(strings.TrimSpace(g.Session.Store))
+	if store == "" {
+		store = "file"
+		g.Session.Store = "file"
+	}
+	switch store {
+	case "memory", "file":
+	default:
+		return fmt.Errorf("agentconfig: gateway.session.store must be memory or file, got %q", g.Session.Store)
+	}
+	if g.Session.FileDir != "" && !filepath.IsAbs(g.Session.FileDir) {
+		return fmt.Errorf("agentconfig: gateway.session.file_dir must be absolute path, got %q", g.Session.FileDir)
+	}
+	if g.RateLimit != nil && g.RateLimit.Enabled {
+		if g.RateLimit.RequestsPerMinute <= 0 {
+			g.RateLimit.RequestsPerMinute = 120
+		}
+		if g.RateLimit.Burst <= 0 {
+			g.RateLimit.Burst = 30
+		}
+	}
 	return nil
 }
 

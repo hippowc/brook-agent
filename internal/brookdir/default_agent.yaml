@@ -69,3 +69,8 @@ interrupt:
 a2ui:
   enabled: false
   version: "0.8"
+
+# HTTP 网关（brook-gateway）；默认关闭，避免误监听端口
+gateway:
+  enabled: false
+  listen: ":8787"

@@ -18,6 +18,7 @@ const (
 	WorkspaceName       = "workspace"
 	CheckpointName      = "checkpoints"
 	ConversationsName   = "conversations"
+	GatewaySessionsName = "gateway/sessions"
 	SessionName         = "session.json"
 	LogFileName         = "brook.log"
 	CurrentConversation = "current_conversation"
@@ -96,6 +97,15 @@ func WriteCurrentConversationID(id string) error {
 	return os.WriteFile(p, []byte(strings.TrimSpace(id)+"\n"), 0o600)
 }
 
+// GatewaySessionsDir 返回 ~/.brook/gateway/sessions（brook-gateway 按用户隔离的 session KV 文件目录）。
+func GatewaySessionsDir() (string, error) {
+	r, err := Root()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(r, GatewaySessionsName), nil
+}
+
 // LogFile 返回日志文件路径 ~/.brook/brook.log。
 func LogFile() (string, error) {
 	r, err := Root()
@@ -115,7 +125,8 @@ func Ensure() (string, error) {
 	workspace := filepath.Join(root, WorkspaceName)
 	chk := filepath.Join(root, CheckpointName)
 	conv := filepath.Join(root, ConversationsName)
-	for _, d := range []string{root, workspace, chk, conv} {
+	gwSessDir := filepath.Join(root, GatewaySessionsName)
+	for _, d := range []string{root, workspace, chk, conv, gwSessDir} {
 		if err := os.MkdirAll(d, 0o755); err != nil {
 			return "", fmt.Errorf("brookdir: mkdir %s: %w", d, err)
 		}

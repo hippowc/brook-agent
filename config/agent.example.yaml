@@ -70,3 +70,29 @@ interrupt:
 a2ui:
   enabled: false
   version: "0.8"
+
+# brook-gateway：HTTP 接入；启用后运行 brook-gateway（与 brook / brook-tui 共用本配置）
+gateway:
+  enabled: false
+  listen: ":8787"
+  read_header_timeout_seconds: 10
+  read_timeout_seconds: 120
+  write_timeout_seconds: 720
+  shutdown_timeout_seconds: 30
+  max_request_body_bytes: 1048576
+  query_timeout_seconds: 600
+  auth:
+    mode: none
+    # mode: bearer
+    # bearer_token_env: "BROOK_GATEWAY_TOKEN"
+    # mode: hmac
+    # hmac_secret_env: "BROOK_GATEWAY_HMAC_SECRET"
+    # hmac_max_skew_seconds: 300
+  rate_limit:
+    enabled: false
+    requests_per_minute: 120
+    burst: 30
+  session:
+    store: file
+    # 留空则使用 ~/.brook/gateway/sessions；自定义须为绝对路径
+    file_dir: ""

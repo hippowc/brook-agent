@@ -119,6 +119,23 @@ agent:
 
 ---
 
+## `gateway`（`brook-gateway`）
+
+由 **`brook-gateway`** 读取与 `brook` / `brook-tui` **相同的** `agent.yaml`。将 **`gateway.enabled`** 设为 **`true`** 后启动进程即可监听 HTTP。
+
+| 能力 | 说明 |
+|------|------|
+| 路由 | `GET /health`、`GET /ready`、`POST /v1/chat` |
+| 请求体 | JSON：`text`（必填）、`user_id`（必填）、`conversation_id`（可选）；响应 `{"reply":"..."}` |
+| 会话 | 按 `user_id` + `conversation_id` 派生键，**独立** 存 ADK `SessionValues`（与 `memory.session_file_path` 的 CLI/TUI 会话文件无关）；`session.store` 为 `memory` 或 `file`，`file` 默认目录 `~/.brook/gateway/sessions/` |
+| 鉴权 | `auth.mode`：`none` \| `bearer`（`Authorization: Bearer <token>`，密钥来自 `bearer_token_env`）\| `hmac`（`X-Brook-Timestamp` Unix 秒 + `X-Brook-Signature` 为 hex(`HMAC-SHA256(secret, timestamp + "\\n" + raw_body)`)，密钥来自 `hmac_secret_env`） |
+| 限流 | `rate_limit.enabled` 时按客户端 IP（支持 `X-Forwarded-For` / `X-Real-IP`）滑动窗口 |
+| 并发 | 进程内对 **`Runner.Query` 串行化**（互斥锁）；水平扩展请多实例 + 前置负载均衡，会话需共享存储（如 `session.store: file` 指向共享盘） |
+
+超时与体大小：`query_timeout_seconds`、`max_request_body_bytes`、`read_*` / `write_timeout_seconds` 等见 `pkg/agentconfig/types.go`。
+
+---
+
 ## 延伸阅读
 
 - `req/agent-config.md`：设计目标与字段映射摘要  
