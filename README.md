@@ -24,7 +24,7 @@ curl -fsSL https://raw.githubusercontent.com/hippowc/brook/main/scripts/install.
 - 指定版本：`VERSION=v0.1.0 curl -fsSL ... | bash`
 - 强制用 Go 从源码安装：`BROOK_FORCE_SOURCE=1 curl -fsSL ... | bash`
 
-安装脚本会先请求 **GitHub API** 再下载 **Release 资源**；在国内或受限网络下可能很慢。若长时间无输出：多为 **`go install` 在拉依赖**（首装可需数分钟），或为 **访问 api.github.com / github.com 受阻**——可配置 `HTTPS_PROXY`、或指定 `VERSION=v0.0.1` 跳过 API、或直接用上面的 `go install`。
+安装脚本会先请求 **GitHub API** 再下载 **Release 资源**。访问 GitHub 较慢时，下载可能持续较久；可配置代理，例如：`export HTTPS_PROXY=http://127.0.0.1:7890`（按你的代理修改）。若 Release 下载仍失败，脚本会回退到 **`go install`**（需本机已装 Go）。
 
 ### 使用 Go 安装（需已配置 `GOPATH/bin` 到 PATH）
 

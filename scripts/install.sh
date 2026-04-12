@@ -10,9 +10,9 @@ set -euo pipefail
 REPO="hippowc/brook"
 MODULE="github.com/${REPO}"
 
-# 避免在网络差时无限等待（国内访问 api.github.com / releases 常较慢，易误以为卡死）
+# API 请求保持较短超时；Release 二进制可能较大，慢网下 10 分钟仍下不完，故下载不设总时长上限（max-time 0），仅限制连接建立时间。
 CURL_API=(curl -fsSL --connect-timeout 15 --max-time 60)
-CURL_DL=(curl -fsSL --connect-timeout 20 --max-time 600)
+CURL_DL=(curl -fsSL --connect-timeout 45 --max-time 0 --retry 5 --retry-delay 8 --retry-connrefused)
 
 detect_plat() {
   local os arch
@@ -51,7 +51,7 @@ install_release() {
   local tarball="brook_${tag}_${plat}.tar.gz"
   local url="https://github.com/${REPO}/releases/download/${tag}/${tarball}"
 
-  echo "Downloading: ${url}"
+  echo "Downloading (慢网可能较久，可设 HTTPS_PROXY): ${url}"
   local tmp
   tmp="$(mktemp)"
   if ! "${CURL_DL[@]}" -o "$tmp" "$url"; then
