@@ -10,6 +10,10 @@ set -euo pipefail
 REPO="hippowc/brook"
 MODULE="github.com/${REPO}"
 
+# 避免在网络差时无限等待（国内访问 api.github.com / releases 常较慢，易误以为卡死）
+CURL_API=(curl -fsSL --connect-timeout 15 --max-time 60)
+CURL_DL=(curl -fsSL --connect-timeout 20 --max-time 600)
+
 detect_plat() {
   local os arch
   os="$(uname -s | tr '[:upper:]' '[:lower:]')"
@@ -47,10 +51,10 @@ install_release() {
   local tarball="brook_${tag}_${plat}.tar.gz"
   local url="https://github.com/${REPO}/releases/download/${tag}/${tarball}"
 
-  echo "Trying ${url}"
+  echo "Downloading: ${url}"
   local tmp
   tmp="$(mktemp)"
-  if ! curl -fsSL -o "$tmp" "$url"; then
+  if ! "${CURL_DL[@]}" -o "$tmp" "$url"; then
     rm -f "$tmp"
     return 1
   fi
@@ -77,14 +81,14 @@ install_go() {
     exit 1
   }
   local ref="${VERSION:-latest}"
-  echo "go install (${ref}) ..."
+  echo "go install (${ref}) — 首次会拉取依赖，可能持续数分钟且无新输出，请稍候 ..."
   go install "${MODULE}/cmd/brook@${ref}"
   go install "${MODULE}/cmd/brook-tui@${ref}"
   echo "Done. Ensure \$(go env GOPATH)/bin is on PATH."
 }
 
 main() {
-  local dest
+  local dest plat tag api_json
   dest="$(pick_dest)"
   export PATH="${dest}:${PATH}"
 
@@ -93,12 +97,17 @@ main() {
     exit 0
   fi
 
-  local plat
   plat="$(detect_plat)"
 
-  local tag="${VERSION:-}"
+  tag="${VERSION:-}"
   if [[ -z "$tag" ]]; then
-    tag="$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p' | head -1)"
+    echo "Fetching latest release tag from GitHub API ..."
+    api_json=""
+    api_json="$("${CURL_API[@]}" "https://api.github.com/repos/${REPO}/releases/latest" 2>/dev/null)" || true
+    tag="$(printf '%s' "$api_json" | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p' | head -1)"
+    if [[ -z "$tag" ]]; then
+      echo "提示: 无法访问 GitHub API（超时或网络限制）。可设置 VERSION=v0.0.1 重试，或 export HTTPS_PROXY=... 后再执行。" >&2
+    fi
   fi
 
   if [[ -n "$tag" && "$tag" != "null" ]]; then
@@ -107,7 +116,7 @@ main() {
     fi
   fi
 
-  echo "Release download unavailable; using Go toolchain ..."
+  echo "Release 二进制不可用，改用 Go 源码安装（若仍很慢，请检查网络或代理）..."
   install_go
 }
 
