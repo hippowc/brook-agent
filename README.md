@@ -45,10 +45,19 @@ go build -o brook-tui ./cmd/brook-tui
 ### 发布用交叉编译（macOS / Linux）
 
 ```bash
-./scripts/build_release.sh
+# 与 GitHub Release 标签一致，否则一键安装会 404（见下表）
+VERSION=v0.0.1 ./scripts/build_release.sh
 ```
 
-产物在 `dist/`：各平台的 `brook_<version>_<os>_<arch>.tar.gz` 与 `checksums.txt`。发布 Release 时请上传这些 `tar.gz`（与 [`scripts/install.sh`](scripts/install.sh) 中的命名一致）。
+产物在 `dist/`：`brook_<VERSION>_<os>_<arch>.tar.gz` 与 `checksums.txt`。
+
+**发布 Release 时附件名必须与标签一致。** 一键安装会请求例如：
+
+| Release 标签 | 需上传的附件名（示例） |
+|--------------|------------------------|
+| `v0.0.1` | `brook_v0.0.1_darwin_amd64.tar.gz`、`brook_v0.0.1_darwin_arm64.tar.gz`、`brook_v0.0.1_linux_amd64.tar.gz`、`brook_v0.0.1_linux_arm64.tar.gz` |
+
+若只运行 `./scripts/build_release.sh` 且未设 `VERSION`，会得到 `brook_4c53307_...` 这类名字，**与 `v0.0.1` Release 不匹配**，安装脚本会 404。请用上述带 `VERSION=...` 的命令重新打包并上传，或在 GitHub 网页上把附件**重命名**为表中形式。
 
 ## 快速使用
 
