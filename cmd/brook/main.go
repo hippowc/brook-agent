@@ -11,9 +11,9 @@ import (
 
 	"github.com/cloudwego/eino/adk"
 
-	"brook/internal/brookdir"
-	"brook/internal/launcher"
-	"brook/pkg/a2ui"
+	"github.com/hippowc/brook/internal/brookdir"
+	"github.com/hippowc/brook/internal/launcher"
+	"github.com/hippowc/brook/pkg/a2ui"
 )
 
 func main() {

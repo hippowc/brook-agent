@@ -1,4 +1,7 @@
 # 与 pkg/agentconfig 对齐的示例配置（复制为 agent.yaml 并按环境修改）
+#
+# 模式与 mode_config 详解：doc/agent-configuration-guide.md
+# 源码字段定义：pkg/agentconfig/types.go、校验：pkg/agentconfig/validate.go
 
 version: "1"
 

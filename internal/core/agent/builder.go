@@ -13,10 +13,10 @@ import (
 	"github.com/cloudwego/eino/compose"
 	einomodel "github.com/cloudwego/eino/components/model"
 
-	agentfs "brook/internal/core/fs"
-	agentmodel "brook/internal/core/model"
-	extmw "brook/internal/extension/middleware"
-	"brook/pkg/agentconfig"
+	agentfs "github.com/hippowc/brook/internal/core/fs"
+	agentmodel "github.com/hippowc/brook/internal/core/model"
+	extmw "github.com/hippowc/brook/internal/extension/middleware"
+	"github.com/hippowc/brook/pkg/agentconfig"
 )
 
 // Build 从根配置构造 Agent；Custom 模式需自行扩展。
@@ -65,6 +65,8 @@ func chatHandlers(bundle *agentfs.BackendBundle, extra []adk.ChatModelAgentMiddl
 		hs = append(hs, bundle.Middleware)
 	}
 	hs = append(hs, extra...)
+	// 置于 Handlers 末尾，使在 adk 中成为最外层包装：工具返回的 error 转为 observation，避免 ToolsNode 直接失败。
+	hs = append(hs, newToolErrorAsObservationMiddleware())
 	return hs
 }
 
@@ -102,7 +104,7 @@ func buildDeep(ctx context.Context, root *agentconfig.Root, cm einomodel.BaseCha
 		SubAgents:     subs,
 		MaxIteration:  root.Agent.MaxIterations,
 		OutputKey:     root.Memory.OutputKey,
-		Handlers:      extra,
+		Handlers:      chatHandlers(bundle, extra),
 		ToolsConfig: adk.ToolsConfig{
 			ToolsNodeConfig: compose.ToolsNodeConfig{},
 			ReturnDirectly:  root.Agent.Tools.ReturnDirectly,

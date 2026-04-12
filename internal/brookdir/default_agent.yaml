@@ -1,4 +1,11 @@
-# Brook 默认配置（首次运行时写入 ~/.brook/agent.yaml，可按需修改）
+# Brook 默认配置（首次运行时写入 ~/.brook/agent.yaml）
+#
+# 本文件刻意保持「最小可运行」：react + 单模型 + filesystem + memory + interrupt。
+# 完整字段与 agent.mode 各模式写法见仓库 doc/agent-configuration-guide.md；
+# 亦可参考 config/agent.example.yaml。TUI 中输入 /help 可查看内置命令与模式速查。
+#
+# agent.mode 可选：react | deep | sequential | parallel | loop | supervisor | plan_execute
+# （custom 未在 Brook 中接线）。切换模式后多数情况需补全 mode_config，见上述文档。
 
 version: "1"
 

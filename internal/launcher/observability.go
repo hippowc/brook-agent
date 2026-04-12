@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"brook/pkg/agentconfig"
+	"github.com/hippowc/brook/pkg/agentconfig"
 )
 
 // ApplyObservability 根据配置将日志写入 logFile，并可选让终端仅显示 Error（TUI 下避免刷屏）。

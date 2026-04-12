@@ -7,7 +7,7 @@ import (
 
 	"github.com/cloudwego/eino/adk"
 
-	"brook/pkg/agentconfig"
+	"github.com/hippowc/brook/pkg/agentconfig"
 )
 
 // FromRefs 将配置中的 middleware 名称转为实例；未知名称返回错误。

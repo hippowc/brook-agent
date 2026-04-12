@@ -1,4 +1,4 @@
-module brook
+module github.com/hippowc/brook
 
 go 1.24.2
 

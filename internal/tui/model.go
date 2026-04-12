@@ -18,10 +18,10 @@ import (
 	"github.com/cloudwego/eino/schema"
 	"github.com/google/uuid"
 
-	"brook/internal/brookdir"
-	"brook/internal/business/conversation"
-	"brook/internal/launcher"
-	"brook/pkg/agentconfig"
+	"github.com/hippowc/brook/internal/brookdir"
+	"github.com/hippowc/brook/internal/business/conversation"
+	"github.com/hippowc/brook/internal/launcher"
+	"github.com/hippowc/brook/pkg/agentconfig"
 )
 
 // streamMsg 表示模型输出增量、工具调用、工具结果或结束。
@@ -90,7 +90,7 @@ const maxToolBodyRunes = 500000
 // New 构建 TUI；cfgPath 为 YAML 路径；convID 为合法 UUID，对应该会话的存档文件。
 func New(rt *launcher.Runtime, cfgPath, convID string) *Model {
 	ti := textinput.New()
-	ti.Placeholder = "输入消息…  /agent mode  ·  /config  ·  /new  ·  Tab 补全"
+	ti.Placeholder = "输入消息…  /help  ·  /agent mode  ·  /config  ·  /new  ·  Tab 补全"
 	ti.CharLimit = 8192
 	ti.Width = 80
 	ti.Prompt = ""
@@ -447,6 +447,12 @@ func (m *Model) submitInput() (tea.Model, tea.Cmd) {
 			return m.handleAgentCommand(strings.TrimSpace(raw))
 		}
 		first := strings.ToLower(strings.TrimSpace(strings.SplitN(raw, " ", 2)[0]))
+		if first == "/help" {
+			m.ti.Reset()
+			m.turns = append(m.turns, turn{role: "meta", text: TUIHelpText})
+			m.setViewportMain(m.transcript())
+			return m, m.ti.Focus()
+		}
 		if first == "/config" {
 			m.ti.Reset()
 			return m.openConfigEditor()
@@ -485,14 +491,15 @@ func (m *Model) handleAgentCommand(raw string) (tea.Model, tea.Cmd) {
 		m.setViewportMain(m.transcript())
 		return m, m.ti.Focus()
 	}
+	hint := agentconfig.ModeSwitchUserHint(mode)
+	meta := fmt.Sprintf("已切换 agent.mode=%s 并写回 %s。\n%s", mode, m.cfgPath, hint)
 	logPath, lerr := brookdir.LogFile()
 	if lerr != nil {
-		m.turns = append(m.turns, turn{role: "meta", text: fmt.Sprintf("已切换 mode=%s（日志路径: %v）", mode, lerr)})
+		meta += fmt.Sprintf("\n（日志路径: %v）", lerr)
 	} else if oerr := launcher.ApplyObservability(rt.Root, logPath, true); oerr != nil {
-		m.turns = append(m.turns, turn{role: "meta", text: fmt.Sprintf("已切换 mode=%s（日志: %v）", mode, oerr)})
-	} else {
-		m.turns = append(m.turns, turn{role: "meta", text: fmt.Sprintf("已切换 agent.mode=%s 并写回 %s", mode, m.cfgPath)})
+		meta += fmt.Sprintf("\n（日志: %v）", oerr)
 	}
+	m.turns = append(m.turns, turn{role: "meta", text: meta})
 	m.rt = rt
 	m.agentName = rt.Root.Agent.Name
 	m.refreshMetaLine()

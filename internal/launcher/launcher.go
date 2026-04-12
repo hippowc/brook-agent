@@ -9,10 +9,10 @@ import (
 
 	"github.com/cloudwego/eino/adk"
 
-	agentrun "brook/internal/core/agent"
-	extcallbacks "brook/internal/extension/callbacks"
-	"brook/internal/business/store"
-	"brook/pkg/agentconfig"
+	agentrun "github.com/hippowc/brook/internal/core/agent"
+	extcallbacks "github.com/hippowc/brook/internal/extension/callbacks"
+	"github.com/hippowc/brook/internal/business/store"
+	"github.com/hippowc/brook/pkg/agentconfig"
 )
 
 // Runtime 持有一次运行所需的配置与 Runner。

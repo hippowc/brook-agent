@@ -12,7 +12,7 @@ import (
 	"github.com/cloudwego/eino-ext/components/model/ollama"
 	openaiext "github.com/cloudwego/eino-ext/components/model/openai"
 
-	"brook/pkg/agentconfig"
+	"github.com/hippowc/brook/pkg/agentconfig"
 )
 
 // NewChatModel 按 provider 的 driver 创建模型实例；当前支持 openai、ollama。

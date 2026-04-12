@@ -12,7 +12,7 @@ import (
 
 	"github.com/cloudwego/eino-ext/adk/backend/local"
 
-	"brook/pkg/agentconfig"
+	"github.com/hippowc/brook/pkg/agentconfig"
 )
 
 // BackendBundle 聚合 Backend 与可选 Shell，以及已构造好的 ChatModelAgentMiddleware。

@@ -11,10 +11,10 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/google/uuid"
 
-	"brook/internal/brookdir"
-	"brook/internal/business/conversation"
-	"brook/internal/launcher"
-	"brook/internal/tui"
+	"github.com/hippowc/brook/internal/brookdir"
+	"github.com/hippowc/brook/internal/business/conversation"
+	"github.com/hippowc/brook/internal/launcher"
+	"github.com/hippowc/brook/internal/tui"
 )
 
 func main() {

@@ -3,10 +3,16 @@ package tui
 import (
 	"strings"
 
-	"brook/pkg/agentconfig"
+	"github.com/hippowc/brook/pkg/agentconfig"
 )
 
-var slashTopLevel = []string{"/agent", "/config", "/new"}
+var slashTopLevel = []string{"/agent", "/config", "/help", "/new"}
+
+// setSlashCompletion 写入补全结果并把光标移到行尾（textinput.SetValue 在光标位于中间时不会自动移到末尾）。
+func (m *Model) setSlashCompletion(s string) {
+	m.ti.SetValue(s)
+	m.ti.CursorEnd()
+}
 
 func longestCommonPrefixStr(strs []string) string {
 	if len(strs) == 0 {
@@ -31,7 +37,7 @@ func (m *Model) applySlashTabCompletion() bool {
 	leading := v[:leadingLen]
 	trim := strings.TrimSpace(v)
 	if trim == "" || trim == "/" {
-		m.ti.SetValue(leading + "/agent mode ")
+		m.setSlashCompletion(leading + "/agent mode ")
 		return true
 	}
 	if !strings.HasPrefix(trim, "/") {
@@ -57,17 +63,17 @@ func (m *Model) applySlashTabCompletion() bool {
 		if len(hits) == 1 {
 			if strings.EqualFold(hits[0], p) {
 				if strings.EqualFold(hits[0], "/agent") {
-					m.ti.SetValue(leading + "/agent mode ")
+					m.setSlashCompletion(leading + "/agent mode ")
 					return true
 				}
 				return false
 			}
-			m.ti.SetValue(leading + hits[0])
+			m.setSlashCompletion(leading + hits[0] + " ")
 			return true
 		}
 		lcp := longestCommonPrefixStr(hits)
 		if len(lcp) > len(p) {
-			m.ti.SetValue(leading + lcp)
+			m.setSlashCompletion(leading + lcp)
 			return true
 		}
 		return false
@@ -84,12 +90,12 @@ func (m *Model) applySlashTabCompletion() bool {
 			if len(modes) == 0 {
 				return false
 			}
-			m.ti.SetValue(leading + "/agent mode "+modes[0])
+			m.setSlashCompletion(leading + "/agent mode "+modes[0] + " ")
 			return true
 		}
 		// 补全子命令 mode
 		if strings.HasPrefix("mode", strings.ToLower(parts[1])) && parts[1] != "mode" {
-			m.ti.SetValue(leading + "/agent mode ")
+			m.setSlashCompletion(leading + "/agent mode ")
 			return true
 		}
 		return false
@@ -109,13 +115,13 @@ func (m *Model) applySlashTabCompletion() bool {
 			}
 			if len(hits) == 1 {
 				base := strings.Join(parts[:2], " ")
-				m.ti.SetValue(leading + base + " " + hits[0])
+				m.setSlashCompletion(leading + base + " " + hits[0] + " ")
 				return true
 			}
 			lcp := longestCommonPrefixStr(hits)
 			if len(lcp) > len(partial) {
 				base := strings.Join(parts[:2], " ")
-				m.ti.SetValue(leading + base + " " + lcp)
+				m.setSlashCompletion(leading + base + " " + lcp)
 				return true
 			}
 		}
