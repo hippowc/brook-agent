@@ -14,7 +14,7 @@
 
 ## 一键安装
 
-### 从 GitHub Release 安装（推荐，需已发布带二进制附件的 Release）
+### 从 GitHub Release 安装
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/hippowc/brook/main/scripts/install.sh | bash
